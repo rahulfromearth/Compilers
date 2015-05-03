@@ -1,0 +1,1 @@
+int main(){     int k=0;     float a=7.6;     int b=7;     x = a*b*b ; }
