@@ -9,6 +9,7 @@
 lineno = 0
 import sys
 import ply.lex as lex
+
 reserved =( 
   # Reserved words
     'ABSTRACT', 'ALIAS', 'ALIGN', 'ASM', 'ASSERT', 'AUTO', 'BODY', 'BOOL', 'BREAK', 'BYTE',
@@ -309,7 +310,7 @@ def t_comment(t):
     global lineno
     global output
     for i in range(t.value.count('\n')):
-      print output[lineno]
+      print(output[lineno])
       lineno += 1
 
 
@@ -338,7 +339,7 @@ def t_DIVIDE(t):
   return t
 
 def t_error(t):
-    print " %s not defined:" % repr(t.value[0])
+    print(" %s not defined:" % repr(t.value[0]))
     t.lexer.skip(1)
 
 t_ignore = " \t"
@@ -347,21 +348,20 @@ def t_newline(t):
   r'\n'
   # global lineno
   # global temp
-  # print output[lineno]
+  # print(output[lineno])
   t.lexer.lineno += 1
   # temp = 0
-  # print lineno
+  # print(lineno)
 
 
-import sys
 # Build the lexer
 lexer = lex.lex()
 # lexer.input('return (4*9-0+5)')
 # while True:
 #       tok = lexer.token()
-#       # print tok
+#       # print(tok)
 #       if not tok: break      # No more input
-#       print tok.type
+#       print(tok.type)
 
 # output = []
 # temp = 0
@@ -371,7 +371,7 @@ lexer = lex.lex()
 #     for line in ins:
 #       data += (line)
 #     output = data.split('\n')
-#     # print len(output)
+#     # print(len(output))
 #     for j in range(len(output)):
 #       for i in range(50-len(output[j])):
 #         output[j] = output[j] + ' '
@@ -379,10 +379,10 @@ lexer = lex.lex()
 #     lexer.input(data)
 #     while True:
 #       tok = lexer.token()
-#       # print tok
+#       # print(tok)
 #       if not tok: break      # No more input
 #       if temp == 0:
 #         output[lineno] = output[lineno] + '\\\\'
 #         temp = 1
 #       output[lineno] = output[lineno] + ' ' + tok.type
-#     print output[lineno] #at EOF
+#     print(output[lineno]) #at EOF

@@ -2,6 +2,8 @@ import os,sys
 import time
 import dlex
 import ply.yacc as yacc
+import logging
+
 tokens = dlex.tokens
 data_size = {'int':4,'char':1,'float':4,'double':8,'long':8,'short':2 }
 count = 0
@@ -46,18 +48,18 @@ i = 0
 
 # def printTable(obj):
 
-#     print "\nPrinting table", obj.data
+#     print("\nPrinting table", obj.data)
 #     for j in obj.attributes:
-#         print j, ':', obj.attributes[j]
-#     print "Children of", obj.data, ":",
+#         print(j, ':', obj.attributes[j])
+#     print("Children of", obj.data, ":",)
 #     flag = False
 #     for i in obj.childTables:
 #         flag = True
-#         print i.data,
+#         print(i.data,)
 #     if(not flag):
-#         print "No child\n"
+#         print("No child\n")
 #     else:
-#         print " "
+#         print(" ")
 #     for i in obj.childTables:
 #         printTable(i)
 
@@ -71,7 +73,7 @@ def p_startProgram(p):
                 '''
     p[0] = p[1]
     p[0].TAC = p[1].TAC
-    print p[0].TAC
+    print(p[0].TAC)
     # global globalScope
     # printTable(globalScope)
     
@@ -117,16 +119,16 @@ def p_FUNCTION_DECL(p):
         p[0] = NewNode('FUNCTION_DECL')
 
         global globalScope, currentScope
-        if not (globalScope == currentScope):            
-                print "Error!! at line:", p.lexer.lineno," ", p[2] ," cant be declare here"
-                sys.exit();
+        if not globalScope != currentScope:
+                print("Error!! at line:", p.lexer.lineno," ", p[2] ," cant be declare here")
+                sys.exit()
         else:
             new_var = currentScope.AppendNewVariable(p[2], p[1] ,-1)
-            if(not new_var):
-                print "Error!! at line:",p.lexer.lineno," Multiple declaration for function ", p[2]
-                sys.exit();
+            if not new_var:
+                print("Error!! at line:",p.lexer.lineno," Multiple declaration for function ", p[2])
+                sys.exit()
         # a = p[7].TAC
-        # print 'sasds', p[4].TAC
+        # print('sasds', p[4].TAC)
         p[0].TAC = "\n" + p[2] + "_begin: " + "\n" + p[4].TAC + "\n" + p[7].TAC + "\nreturn;\n\n"
 
 
@@ -139,13 +141,13 @@ def p_FUNCTION_DECL(p):
             p[0] = NewNode('FUNCTION_DECL2')
             global globalScope, currentScope
             if not (globalScope == currentScope):
-                print "Error!! : at line:", p.lexer.lineno, " ", p[2] ," can't be declared here"
+                print("Error!! : at line:", p.lexer.lineno, " ", p[2] ," can't be declared here")
                 sys.exit()
             else:
                 new_var = currentScope.AppendNewVariable(p[2], p[1].data,-1)
                 if(not new_var):
-                    print "Error!! at line:",p.lexer.lineno," Multiple declaration for function: ", p[2]
-                    sys.exit();
+                    print("Error!! at line:",p.lexer.lineno," Multiple declaration for function: ", p[2])
+                    sys.exit()
             p[0].TAC = "\n" + p[2] + "_begin:\n" + p[6].TAC + "\nreturn;\n\n"
 
     elif(len(p) == 7 ):
@@ -165,12 +167,12 @@ def p_FUNCTION_DECL2(p):
         p[0] = NewNode('FUNCTION_DECL')
         global globalScope, currentScope
         if not (currentScope == globalScope):
-            print "Error!! : at line:", p.lexer.lineno," ", p[1], " cant be declare here"
+            print("Error!! : at line:", p.lexer.lineno," ", p[1], " cant be declare here")
         else:
             new_var = currentScope.AppendNewVariable(p[1], 'void',-1)
             if(not new_var):
-                print "Error!! at line:",p.lexer.lineno," Multiple declaration for function ", p[1]
-                sys.exit();
+                print("Error!! at line:",p.lexer.lineno," Multiple declaration for function ", p[1])
+                sys.exit()
         p[0].TAC = "\n" + p[1] + "_begin:\n " + p[3].TAC + "\n" + p[6].TAC + "\nreturn;\n\n"
         global s
         s+=1
@@ -178,12 +180,12 @@ def p_FUNCTION_DECL2(p):
         p[0] = NewNode('FUNCTION_DECL3')
         global globalScope, currentScope
         if not (globalScope == currentScope):
-            print "Error!! : at line:", p.lexer.lineno, " ", p[1], " cant be declare here" 
+            print("Error!! : at line:", p.lexer.lineno, " ", p[1], " cant be declare here" )
         else:
             new_var = currentScope.AppendNewVariable(p[1], 'void',-1)
             if(not new_var):
-                print "Error!! at line:",p.lexer.lineno, " Multiple declaration for function: ", p[1]
-                sys.exit();
+                print("Error!! at line:",p.lexer.lineno, " Multiple declaration for function: ", p[1])
+                sys.exit()
         p[0].TAC = "\n" + p[1] + "_begin:\n" + p[5].TAC + "\nreturn;\n\n"
 
 def p_LIST_OF_PARAMETERS (p):
@@ -370,7 +372,7 @@ def p_VARIABLE_DECLARATION(p):
                 offset += data_size[p[1].data]
 
             
-        # print 'ss ', currentScope.attributes[i]
+        # print('ss ', currentScope.attributes[i])
     p[0].TAC =  p[2].TAC
 
     # p[0].type = p[1].type
@@ -413,25 +415,25 @@ def p_VAR_DECLARATION_ID(p):
 #  SEE IF NEEED OF NewNode(VAR_DE)
     global currentScope
     if(len(p) == 2 ):
-        # print 'sahil  ', p[1]
+        # print('sahil  ', p[1])
         new_var = currentScope.AppendNewVariable(p[1], '')
-        # print 'sasadad ' , new_var 
+        # print('sasadad ' , new_var )
         if(not new_var):
-            print "Error!! at line:", p.lexer.lineno, "  Multiple declaration for variable ", p[1]
-            sys.exit();
+            print("Error!! at line:", p.lexer.lineno, "  Multiple declaration for variable ", p[1])
+            sys.exit()
         p[0] = NewNode(p[1])
         p[0].TAC = ""
         p[0].place = p[1][0]
 
-        #print p[1]
+        #print(p[1])
     elif(len(p) == 5):
         p[0] = NewNode('VAR_DECLARATION_ID2')
 
-        # print p[3].data
+        # print(p[3].data)
         new_var = currentScope.AppendNewVariable(p[1], '', int( p[3].data))
         if(not new_var):
-            print "Error!! at line:", p.lexer.lineno, " Multiple declaration for variable ", p[1]
-            sys.exit();
+            print("Error!! at line:", p.lexer.lineno, " Multiple declaration for variable ", p[1])
+            sys.exit()
         global count
         count += 1
         new_var = "_t" + str(count)
@@ -501,12 +503,12 @@ def p_EXPRESSION (p):
     elif(len(p)==4):
         p[0] = NewNode(p[2][0])
         if(p[1].type !=p[3].type):
-            print "Error!! at line:", p.lexer.lineno, ' Type mismtach for ',p[2][1]
+            print("Error!! at line:", p.lexer.lineno, ' Type mismtach for ',p[2][1])
             sys.exit()
         else:
             p[0].type = p[1].type        
         if(p[2][1]=='EQUALS'):
-            # print 'sasadadafaaf'
+            # print('sasadadafaaf')
             
             # p[0].TAC = p[1].TAC + p[3].TAC + "\n" + p[1].place + " = " + p[3].place + ";\n"
             p[0].TAC = p[3].TAC + "\ns1 = " + p[3].place + ";\n" + p[1].place+ " = s1;\n"
@@ -589,12 +591,12 @@ def p_RELATIONAL_EXPRESSION (p):
         p[0].TAC = p[1].TAC
         p[0].type = p[1].type
     else:
-        # print 'sumtype ',p[1].type , p[3].type
+        # print('sumtype ',p[1].type , p[3].type)
         if(p[1].type!= p[3].type):
-            print "Error!! at line:", p.lexer.lineno, ' Type mismatch for ',p[2][0] #, 'at the line ',p.lexer.lineno
+            print("Error!! at line:", p.lexer.lineno, ' Type mismatch for ',p[2][0]) #, 'at the line ',p.lexer.lineno
             sys.exit()
 
-        # print 'sahil22' , p[2]                       
+        # print('sahil22' , p[2]                       )
         if(p[2][1]=='LESSER'):
             p[0] = NewNode(p[2])            
             count += 1
@@ -695,9 +697,9 @@ def p_SUM_EXPRESSION(p):
         elif(p[2][1]=='MOD'):
             p[0].TAC += new_var + " = s1 %  s2;\n"
  
-        # print 'sumtype ',p[1].type , p[3].type
+        # print('sumtype ',p[1].type , p[3].type)
         if(p[1].type!= p[3].type):
-            print "Error!! at line:", p.lexer.lineno,  ' Type mismatch for ',p[2][0]
+            print("Error!! at line:", p.lexer.lineno,  ' Type mismatch for ',p[2][0])
             sys.exit()
         else:
             p[0].type = p[1].type
@@ -723,7 +725,7 @@ def p_UNARY_EXPRESSION(p):
             p[0].type = 'int'
 
         elif(p[2].TAC == " + 1;\n" or p[2].TAC == " - 1;\n"):  
-            # print p[1].place , "sada"
+            # print(p[1].place , "sada")
             p[0] = NewNode('UNARY_EXPRESSION2')
             p[0].TAC = p[1].place + " = " + p[1].place + p[2].TAC
             p[0].place = p[1].place + p[2].place
@@ -732,7 +734,7 @@ def p_UNARY_OPERATOR(p):
     '''UNARY_OPERATOR : PLUSPLUS
                 | MINUSMINUS
                 '''
-    # print 'PPPPPP'                
+    # print('PPPPPP'                )
     if(p[1][1]=='PLUSPLUS'):        
         p[0] = NewNode(p[1])
         p[0].TAC = " + 1;\n"
@@ -793,7 +795,7 @@ def p_DATA_OBJECT(p):
             break
 
     if(flag):
-        print "Error!! at line:", p.lexer.lineno,  ' variable ',p[1] ,'not declared before'
+        print("Error!! at line:", p.lexer.lineno,  ' variable ',p[1] ,'not declared before')
         sys.exit()    
 
 def p_OTHER_EXPR(p):
@@ -872,7 +874,7 @@ def p_STR_CONST (p):
 def p_LEFTBRACES(p):
     ''' LEFTBRACES : LEFTBRACE
                     '''
-    # print 'sasassasa' ,p[1]                    
+    # print('sasassasa' ,p[1]                    )
     p[0] = NewNode(p[1][0])
     p[0].TAC = ""
     global currentScope, tableNo
@@ -890,9 +892,8 @@ def p_RIGHTBRACES(p):
     currentScope = currentScope.father
 
 def p_error(p):
-    print "Parse Time Error!! at line:", p.lexer.lineno
+    print("Parse Time Error!! at line:", p.lexer.lineno)
 
-import logging
 logging.basicConfig(
     level=logging.INFO,
     filename="parselog.txt"
@@ -906,12 +907,12 @@ data2 = 'int main(){     int k=0;     float a=7.6;     int b=7;     x = a*b*b ; 
 
 data = open(sys.argv[1],'r').read()
 
-print "input program is:"
-print data
-print "3-AC is"
-print 
+print("input program is:")
+print(data)
+print("3-AC is")
+print()
 
 parser.parse(data, debug=logging.getLogger())
 
-# print parser.parse(data2, debug=logging.getLogger())
-# print parser.parse(data, debug=logging.getLogger())
+# print(parser.parse(data2, debug=logging.getLogger()))
+# print(parser.parse(data, debug=logging.getLogger()))
