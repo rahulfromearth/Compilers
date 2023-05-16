@@ -1,0 +1,5 @@
+*.pyc
+parsetab.py
+parser.out
+parselog.txt
+**/__pycache__
