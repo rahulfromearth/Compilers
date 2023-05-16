@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+from typing import List, Optional
 import dlex
 import ply.yacc as yacc
 import logging
@@ -14,17 +15,17 @@ lineno = 1
 
 
 class SymbolTable(object):
-    def __init__(self, data):
+    def __init__(self, data) -> None:
         self.data = data
-        self.father = None
-        self.childTables: list["SymbolTable"] = []
+        self.father: Optional["SymbolTable"] = None
+        self.childTables: List["SymbolTable"] = []
         self.attributes = {}
 
-    def AppendNewTable(self, my_object: "SymbolTable"):
+    def append_new_table(self, my_object: "SymbolTable") -> None:
         self.childTables.append(my_object)
         my_object.father = self
 
-    def AppendNewVariable(self, my_object, data_type, size=0):
+    def append_new_variable(self, my_object: "SymbolTable", data_type, size=0) -> bool:
         if my_object in self.attributes:
             return False
         else:
@@ -37,11 +38,11 @@ class SymbolTable(object):
 
 
 class NewNode(object):
-    def __init__(self, Nodeinfo):
-        self.data = Nodeinfo
-        self.TAC = ""
-        self.place = ""
-        self.type = ""
+    def __init__(self, node_info: str) -> None:
+        self.data = node_info
+        self.TAC: str = ""
+        self.place: str = ""
+        self.type: str = ""
 
 
 tableNo = 1
@@ -58,8 +59,8 @@ i = 0
 #     flag = False
 #     for i in obj.childTables:
 #         flag = True
-#         print(i.data,)
-#     if(not flag):
+#         print(i.data)
+#     if not flag:
 #         print("No child\n")
 #     else:
 #         print(" ")
@@ -70,16 +71,16 @@ i = 0
 # --------------------yacc grammer rules for D programming langugage-------#
 
 
-def p_startProgram(p):
+def p_startProgram(p: List[NewNode]):
     """Program : LIST_OF_STATEMENTS"""
+    # global globalScope
     p[0] = p[1]
     p[0].TAC = p[1].TAC
     print(p[0].TAC)
-    # global globalScope
     # printTable(globalScope)
 
 
-def p_LIST_OF_STATEMENTS(p):
+def p_LIST_OF_STATEMENTS(p: List[NewNode]):
     """LIST_OF_STATEMENTS : LIST_OF_STATEMENTS STATEMENT
     | STATEMENT
     """
@@ -91,7 +92,7 @@ def p_LIST_OF_STATEMENTS(p):
         p[0].TAC = p[1].TAC
 
 
-def p_STATEMENT(p):
+def p_STATEMENT(p: List[NewNode]):
     """STATEMENT : EXPRESSION_STATEMENT
     | DECISION_STATEMENT
     | LOOP_STATEMENT
@@ -110,7 +111,7 @@ def p_STATEMENT(p):
 s = 0
 
 
-def p_FUNCTION_DECL(p):
+def p_FUNCTION_DECL(p: List[NewNode]):
     """FUNCTION_DECL : VARIABLE_TYPE IDENTIFIER LEFTPAR LIST_OF_PARAMETERS RIGHTPAR  LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES
     | VARIABLE_TYPE IDENTIFIER LEFTPAR  RIGHTPAR  LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES
     | VARIABLE_TYPE IDENTIFIER LEFTPAR LIST_OF_PARAMETERS RIGHTPAR NOTHROW STATEMENT
@@ -118,37 +119,23 @@ def p_FUNCTION_DECL(p):
     | AUTO IDENTIFIER LEFTPAR LIST_OF_PARAMETERS RIGHTPAR STATEMENT
     | VARIABLE_TYPE IDENTIFIER LEFTPAR VARIABLE_TYPE IDENTIFIER COMMA DOT DOT DOT RIGHTPAR STATEMENT
     """
+    global globalScope, currentScope, s
     if len(p) == 9:
         p[0] = NewNode("FUNCTION_DECL")
 
-        global globalScope, currentScope
-        if not globalScope != currentScope:
-            print(
-                "Error!! at line:", p.lexer.lineno, " ", p[2], " cant be declare here"
-            )
+        if globalScope != currentScope:
+            print(f"Error!! at line: {p.lexer.lineno} {p[2]} can't be declare here")
             sys.exit()
         else:
-            new_var = currentScope.AppendNewVariable(p[2], p[1], -1)
+            new_var = currentScope.append_new_variable(p[2], p[1], -1)
             if not new_var:
                 print(
-                    "Error!! at line:",
-                    p.lexer.lineno,
-                    " Multiple declaration for function ",
-                    p[2],
+                    f"Error!! at line: {p.lexer.lineno} Multiple declaration for function {p[2]}"
                 )
                 sys.exit()
         # a = p[7].TAC
         # print('sasds', p[4].TAC)
-        p[0].TAC = (
-            "\n"
-            + p[2]
-            + "_begin: "
-            + "\n"
-            + p[4].TAC
-            + "\n"
-            + p[7].TAC
-            + "\nreturn;\n\n"
-        )
+        p[0].TAC = "\n{}_begin: \n{}\n{}\nreturn;\n\n".format(p[2], p[4].TAC, p[7].TAC)
 
     elif len(p) == 8:
         if 1 == 2:
@@ -157,24 +144,16 @@ def p_FUNCTION_DECL(p):
             i = 0
         else:
             p[0] = NewNode("FUNCTION_DECL2")
-            global globalScope, currentScope
             if globalScope != currentScope:
                 print(
-                    "Error!! : at line:",
-                    p.lexer.lineno,
-                    " ",
-                    p[2],
-                    " can't be declared here",
+                    f"Error!! : at line: {p.lexer.lineno} {p[2]} can't be declared here"
                 )
                 sys.exit()
             else:
-                new_var = currentScope.AppendNewVariable(p[2], p[1].data, -1)
+                new_var = currentScope.append_new_variable(p[2], p[1].data, -1)
                 if not new_var:
                     print(
-                        "Error!! at line:",
-                        p.lexer.lineno,
-                        " Multiple declaration for function: ",
-                        p[2],
+                        f"Error!! at line: {p.lexer.lineno} Multiple declarations for function: {p[2]}"
                     )
                     sys.exit()
             p[0].TAC = "\n" + p[2] + "_begin:\n" + p[6].TAC + "\nreturn;\n\n"
@@ -185,51 +164,36 @@ def p_FUNCTION_DECL(p):
     else:
         i = 0
 
-    global s
     s = 0
 
 
-def p_FUNCTION_DECL2(p):
+def p_FUNCTION_DECL2(p: List[NewNode]):
     """FUNCTION_DECL :  IDENTIFIER LEFTPAR LIST_OF_PARAMETERS RIGHTPAR  LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES
     | IDENTIFIER LEFTPAR RIGHTPAR  LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES
     """
+    global globalScope, currentScope, s
     if len(p) == 8:
         p[0] = NewNode("FUNCTION_DECL")
-        global globalScope, currentScope
         if globalScope != currentScope:
-            print(
-                "Error!! : at line:", p.lexer.lineno, " ", p[1], " cant be declare here"
-            )
+            print(f"Error!! : at line: {p.lexer.lineno} {p[1]} can't be declare here")
         else:
-            new_var = currentScope.AppendNewVariable(p[1], "void", -1)
+            new_var = currentScope.append_new_variable(p[1], "void", -1)
             if not new_var:
                 print(
-                    "Error!! at line:",
-                    p.lexer.lineno,
-                    " Multiple declaration for function ",
-                    p[1],
+                    f"Error!! at line: {p.lexer.lineno} Multiple declarations for function {p[1]}"
                 )
                 sys.exit()
-        p[0].TAC = (
-            "\n" + p[1] + "_begin:\n " + p[3].TAC + "\n" + p[6].TAC + "\nreturn;\n\n"
-        )
-        global s
+        p[0].TAC = "\n{}_begin:\n {}\n{}\nreturn;\n\n".format(p[1], p[3].TAC, p[6].TAC)
         s += 1
     else:
         p[0] = NewNode("FUNCTION_DECL3")
-        global globalScope, currentScope
         if globalScope != currentScope:
-            print(
-                "Error!! : at line:", p.lexer.lineno, " ", p[1], " cant be declare here"
-            )
+            print(f"Error!! : at line: {p.lexer.lineno} {p[1]} can't be declare here")
         else:
-            new_var = currentScope.AppendNewVariable(p[1], "void", -1)
+            new_var = currentScope.append_new_variable(p[1], "void", -1)
             if not new_var:
                 print(
-                    "Error!! at line:",
-                    p.lexer.lineno,
-                    " Multiple declaration for function: ",
-                    p[1],
+                    f"Error!! at line: {p.lexer.lineno} Multiple declarations for function: {p[1]}"
                 )
                 sys.exit()
         p[0].TAC = "\n" + p[1] + "_begin:\n" + p[5].TAC + "\nreturn;\n\n"
@@ -239,14 +203,13 @@ def p_LIST_OF_PARAMETERS(p):
     """LIST_OF_PARAMETERS : VARIABLE_TYPE IDENTIFIER COMMA LIST_OF_PARAMETERS
     | VARIABLE_TYPE IDENTIFIER
     """
+    global s
     if len(p) == 3:
         p[0] = NewNode("PARAMETERS1")
-        global s
         s += 1
         p[0].TAC = "_param" + str(s) + " " + p[2]
 
     elif len(p) == 5:
-        global s
         s += 1
 
         p[0] = NewNode("PARAMETERS2")
@@ -292,10 +255,10 @@ def p_DECISION_STATEMENT(p):
     """DECISION_STATEMENT : IF LEFTPAR SIMPLE_EXPRESSION RIGHTPAR LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES
     | IF LEFTPAR SIMPLE_EXPRESSION RIGHTPAR LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES ELSE LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES
     """
+    global states
     # RIGHT NOW BRACES IS MUST FOR BOTH IF AND ELSE
     if len(p) == 8:
         p[0] = NewNode("DECISION_STATEMENT")
-        global states
         states += 1
         p[0].TAC = p[3].TAC + "s = " + p[3].place + ";\n"
         p[0].TAC += "if s > 0 goto state_" + str(states) + ";"
@@ -313,10 +276,9 @@ def p_DECISION_STATEMENT(p):
 
     elif len(p) == 12:
         p[0] = NewNode("DECISION_STATEMENT2")
-        global states
         states += 1
-        p[0].TAC = p[3].TAC + "s = " + p[3].place + ";\n"
-        p[0].TAC += "if s > 0 goto state_" + str(states) + ";\n"
+        p[0].TAC = f"{p[3].TAC}s = {p[3].place};\n"
+        p[0].TAC += f"if s > 0 goto state_{states};\n"
         p[0].TAC += p[10].TAC + "\ngoto state_" + str(states + 1) + ";\n"
         p[0].TAC += (
             "\nstate_"
@@ -419,8 +381,8 @@ def p_FOR_LOOP(p):
 #     """FOR_LOOP :  FOR LEFTPAR EXPRESSION SEMICOLON EXPRESSION SEMICOLON EXPRESSION RIGHTPAR SEMICOLON
 #                         """
 
-#     p[0] = NewNode('FOR_LOOP3')
 #     global states
+#     p[0] = NewNode('FOR_LOOP3')
 #     states += 1
 #     p[0].TAC = "\nstate_" + str(states) + ":\n" + p[7].TAC + "\ngoto state_" + str(states+1) + ";\n"
 #     states += 1
@@ -431,9 +393,9 @@ def p_WHILE_LOOP(p):
     """WHILE_LOOP :     WHILE LEFTPAR SIMPLE_EXPRESSION RIGHTPAR STATEMENT
     | WHILE LEFTPAR SIMPLE_EXPRESSION RIGHTPAR LEFTBRACES LIST_OF_STATEMENTS RIGHTBRACES
     """
+    global states
     if len(p) == 6:
         p[0] = NewNode("WHILE_LOOP1")
-        global states
         states += 1
         p[0].TAC = (
             "\nstate_" + str(states) + ":" + p[3].TAC + "\ns = " + p[3].place + ";\n"
@@ -460,7 +422,6 @@ def p_WHILE_LOOP(p):
 
     elif len(p) == 8:
         p[0] = NewNode("WHILE_LOOP2")
-        global states
         states += 1
         p[0].TAC = (
             "\nstate_" + str(states) + ":" + p[3].TAC + "\ns = " + p[3].place + ";\n"
@@ -503,8 +464,7 @@ def p_ENUM_VARIABLE_TYPE(p):
 def p_VARIABLE_DECLARATION(p):
     """VARIABLE_DECLARATION : VARIABLE_TYPE LISTOF_VAR_DECLARATIONS SEMICOLON"""
     p[0] = NewNode("VARIABLE_DECLARATION")
-    global currentScope
-    global offset
+    global currentScope, offset
     for i in currentScope.attributes:
         if currentScope.attributes[i]["type"] == "":
             currentScope.attributes[i]["type"] = p[1].data
@@ -517,7 +477,7 @@ def p_VARIABLE_DECLARATION(p):
             ):
                 offset += data_size[p[1].data] * currentScope.attributes[i]["size"]
 
-            elif not currentScope.attributes[i]["size"] == -1:
+            elif currentScope.attributes[i]["size"] != -1:
                 offset += data_size[p[1].data]
 
         # print('ss ', currentScope.attributes[i])
@@ -570,17 +530,14 @@ def p_VAR_DECLARATION_ID(p):
 
     """  # inp[string] array1;
     #  SEE IF NEEED OF NewNode(VAR_DE)
-    global currentScope
+    global currentScope, count
     if len(p) == 2:
         # print('sahil  ', p[1])
-        new_var = currentScope.AppendNewVariable(p[1], "")
+        new_var = currentScope.append_new_variable(p[1], "")
         # print('sasadad ' , new_var )
         if not new_var:
             print(
-                "Error!! at line:",
-                p.lexer.lineno,
-                "  Multiple declaration for variable ",
-                p[1],
+                f"Error!! at line: {p.lexer.lineno} Multiple declarations for variable {p[1]}"
             )
             sys.exit()
         p[0] = NewNode(p[1])
@@ -592,21 +549,17 @@ def p_VAR_DECLARATION_ID(p):
         p[0] = NewNode("VAR_DECLARATION_ID2")
 
         # print(p[3].data)
-        new_var = currentScope.AppendNewVariable(p[1], "", int(p[3].data))
+        new_var = currentScope.append_new_variable(p[1], "", int(p[3].data))
         if not new_var:
             print(
-                "Error!! at line:",
-                p.lexer.lineno,
-                " Multiple declaration for variable ",
-                p[1],
+                f"Error!! at line: {p.lexer.lineno} Multiple declarations for variable {p[1]}"
             )
             sys.exit()
-        global count
         count += 1
-        new_var = "_t" + str(count)
+        new_var = f"_t{count}"
 
         p[0].TAC = p[3].TAC + "\n"
-        p[0].place = p[1] + "[" + new_var + "]"
+        p[0].place = f"{ p[1] }[{ new_var }]"
 
     # DYNAMIC ARRAY NOT SUPPORTED
     else:
@@ -669,7 +622,7 @@ def p_EXPRESSION(p):
     elif len(p) == 4:
         p[0] = NewNode(p[2][0])
         if p[1].type != p[3].type:
-            print("Error!! at line:", p.lexer.lineno, " Type mismtach for ", p[2][1])
+            print(f"Error!! at line: {p.lexer.lineno} Type mismtach for {p[2][1]}")
             sys.exit()
         else:
             p[0].type = p[1].type
@@ -705,6 +658,7 @@ def p_SIMPLE_EXPRESSION(p):
     | SIMPLE_EXPRESSION OR RELATIONAL_EXPRESSION
     | RELATIONAL_EXPRESSION
     """
+    global states, count
     if len(p) == 2:
         p[0] = p[1]
         p[0].TAC = p[1].TAC
@@ -713,7 +667,6 @@ def p_SIMPLE_EXPRESSION(p):
     else:
         if p[2][1] == "AND":
             p[0] = NewNode(p[2])
-            global states, count
             states += 1
             count += 1
             new_var = "_t" + str(count)
@@ -729,7 +682,6 @@ def p_SIMPLE_EXPRESSION(p):
             p[0].type = "bool"
         else:
             p[0] = NewNode(p[2])
-            global states, count
             states += 1
             count += 1
             new_var = "_t" + str(count)
@@ -770,9 +722,8 @@ def p_RELATIONAL_EXPRESSION(p):
     else:
         # print('sumtype ',p[1].type , p[3].type)
         if p[1].type != p[3].type:
-            print(
-                "Error!! at line:", p.lexer.lineno, " Type mismatch for ", p[2][0]
-            )  # , 'at the line ',p.lexer.lineno
+            print(f"Error!! at line: {p.lexer.lineno} Type mismatch for {p[2][0]}")
+            # , 'at the line ',p.lexer.lineno
             sys.exit()
 
         # print('sahil22' , p[2]                       )
@@ -783,7 +734,7 @@ def p_RELATIONAL_EXPRESSION(p):
             p[0].TAC = "\n" + new_var + " = 0;\n"
             p[0].TAC += p[1].TAC + "\n" + p[3].TAC + "\ns1 = " + p[1].place + ";\n"
             p[0].TAC += "s2 = " + p[3].place + ";\n"
-            p[0].TAC += "if s1 <  s2 " + new_var + " = 1;\n"
+            p[0].TAC += "if s1 < s2 " + new_var + " = 1;\n"
             p[0].place = new_var
 
         elif p[2][1] == "GREATER":
@@ -851,6 +802,7 @@ def p_SUM_EXPRESSION(p):
     | SUM_EXPRESSION MOD UNARY_EXPRESSION
     | UNARY_EXPRESSION
     """
+    global count
     if len(p) == 2:
         p[0] = p[1]
         p[0].TAC = p[1].TAC
@@ -858,7 +810,6 @@ def p_SUM_EXPRESSION(p):
 
     else:
         p[0] = NewNode(p[2][0])
-        global count
         count += 1
         new_var = "_t" + str(count)
         p[0].TAC = (
@@ -884,7 +835,7 @@ def p_SUM_EXPRESSION(p):
 
         # print('sumtype ',p[1].type , p[3].type)
         if p[1].type != p[3].type:
-            print("Error!! at line:", p.lexer.lineno, " Type mismatch for ", p[2][0])
+            print(f"Error!! at line: {p.lexer.lineno} Type mismatch for {p[2][0]}")
             sys.exit()
         else:
             p[0].type = p[1].type
@@ -920,7 +871,7 @@ def p_UNARY_OPERATOR(p):
     """UNARY_OPERATOR : PLUSPLUS
     | MINUSMINUS
     """
-    # print('PPPPPP'                )
+    # print('PPPPPP')
     if p[1][1] == "PLUSPLUS":
         p[0] = NewNode(p[1])
         p[0].TAC = " + 1;\n"
@@ -950,8 +901,7 @@ def p_DATA_OBJECT(p):
     |  IDENTIFIER DOT IDENTIFIER
     """
     #  DOUBT
-    global currentScope
-    global count
+    global currentScope, count
 
     if len(p) == 2:
         p[0] = NewNode(p[1])
@@ -970,28 +920,20 @@ def p_DATA_OBJECT(p):
     else:
         i = 0
     # CLASS FUNCTIONS NOT HANDLED
-    flag = 1
+    flag = True
     for i in currentScope.attributes:
         if currentScope.attributes[i]["name"] == p[1]:
             p[0].type = currentScope.attributes[i]["type"]
-
-            flag = 0
+            flag = False
             break
     for i in currentScope.father.attributes:
         if currentScope.father.attributes[i]["name"] == p[1]:
             p[0].type = currentScope.father.attributes[i]["type"]
-
-            flag = 0
+            flag = False
             break
 
     if flag:
-        print(
-            "Error!! at line:",
-            p.lexer.lineno,
-            " variable ",
-            p[1],
-            "not declared before",
-        )
+        print(f"Error!! at line: {p.lexer.lineno} variable {p[1]} not declared before")
         sys.exit()
 
 
@@ -1074,32 +1016,31 @@ def p_STR_CONST(p):
 
 def p_LEFTBRACES(p):
     """LEFTBRACES : LEFTBRACE"""
-    # print('sasassasa' ,p[1]                    )
+    global currentScope, tableNo
+    # print('sasassasa', p[1])
     p[0] = NewNode(p[1][0])
     p[0].TAC = ""
-    global currentScope, tableNo
     new_scope = SymbolTable(tableNo)
     tableNo += 1
-    currentScope.AppendNewTable(new_scope)
+    currentScope.append_new_table(new_scope)
     currentScope = new_scope
 
 
-def p_RIGHTBRACES(p):
+def p_RIGHTBRACES(p: List[NewNode]):
     """RIGHTBRACES : RIGHTBRACE"""
+    global currentScope
     p[0] = NewNode(p[1][0])
     p[0].TAC = ""
-    global currentScope
     currentScope = currentScope.father
 
 
 def p_error(p):
-    print("Parse Time Error!! at line:", p.lexer.lineno)
+    print(f"Parse Time Error!! at line: {p.lexer.lineno}")
 
 
 logging.basicConfig(level=logging.INFO, filename="parselog.txt")
 
 
-parser = yacc.yacc()
 data3 = """int main (int c, int x, int k, int l) { 
     int i, c[2], j = 1, k = 0;
     k = 1 + j;
@@ -1107,15 +1048,16 @@ data3 = """int main (int c, int x, int k, int l) {
     if (i == j) { k = i * 2; } else { j = j * 2; }
 }"""
 data1 = "int main() { float f = 7*5-5+4/5+5+5+5-5*6; }"
-data2 = "int main() { int k = 0;     float a=7.6;     int b=7;     x = a*b*b ; }"
+data2 = "int main() { int k = 0; float a = 7.6; int b = 7; x = a * b * b; }"
 
 data = open(sys.argv[1], "r").read()
 
-print("input program is:")
+print("Input Program is:")
 print(data)
-print("3-AC is")
+print("Three-Address Code is")
 print()
 
+parser = yacc.yacc()
 parser.parse(data, debug=logging.getLogger())
 
 # print(parser.parse(data2, debug=logging.getLogger()))

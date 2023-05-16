@@ -1,20 +1,15 @@
 # -----------------------------------------------------------------------------------
-#   CS335: Compiler Design (Dec 2014 - May 2015)                                     
-#   Assignment 4                                                                  
-#                                                                                    
+#   CS335: Compiler Design (Dec 2014 - May 2015)
+#   Assignment 4
+#    
 #   Authors: Abhay Kumar(11008), Sahil Solanki(11624), Swaroop Singh Deval(11756)
-#   D - Python - MIPS    
-#   Group Number: G28                                                                
-#   File: README                                                                     
+#   D - Python - MIPS
+#   Group Number: G28
+#   File: README
 # -----------------------------------------------------------------------------------
 
 Objective:
 		Write an Assembly Code Generator for the source language that we have chosen.
-
-Requirements:
-	ply.lex
-	pyinstaller
-	make
 
 Work Flow: 
 1. We have added some remaining semantic rules only so no assembly code generate right now as we couldn't give enough time for assignment.
@@ -35,33 +30,30 @@ NOT IMPLEMENTED:
 
 
 Working:
-Right now variable declaration is working proplery with most of the type of expression are handled . Also break and return handled.
+Right now variable declaration is working proplery with most of the type of expression are handled. Also break and return handled.
 rest we will submit along with assgn3.
 
 Run:
-	$cd asgn4
-	$make
-	$bin/codegen test/test1.d (to execute first tast-case file test1.d)
-
+```sh
+make
+bin/codegen test/test1.d # to execute first test-case file test1.d
+```
 
 Contains:
-	asgn1
-		src
-			dlex.py
-			codegen.py
-		test
-			test1.d
-			test2.d
-			test3.d
-			test4.d
-			test5.d
-			test6.d
-			test7.txt
-			test8.d
-			test9.d
-			test10.d
-			test11.d
-			
-		
-		Makefile
-		README
+	src
+		dlex.py
+		codegen.py
+	test
+		test1.d
+		test2.d
+		test3.d
+		test4.d
+		test5.d
+		test6.d
+		test7.d
+		test8.d
+		test9.d
+		test10.d
+		test11.d
+	Makefile
+	README
